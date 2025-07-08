@@ -9,8 +9,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/rag")
 public class RagController {
 
-    @Autowired
-    private RagService ragService;
+    private final RagService ragService;
+
+    public RagController(RagService ragService) {
+        this.ragService = ragService;
+    }
 
     @GetMapping("/ask")
     public ResponseEntity<String> ask(@RequestParam String question) throws Exception {

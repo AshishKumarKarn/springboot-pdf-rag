@@ -14,37 +14,37 @@ public class OllamaClient {
 
     public static String callOllama(String prompt) throws IOException, InterruptedException {
         HttpClient client = HttpClient.newHttpClient();
-
-        String safePrompt = prompt.replace("\"", "\\\"").replace("\n", "\\n");
-        String body = String.format("""
-                {
-                    "model": "mistral",
-                    "prompt": "%s"
-                }
-                """, safePrompt);
-
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:11434/api/generate"))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(body))
-                .build();
-
-//        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        HttpResponse<java.util.stream.Stream<String>> response = client.send(
-                request, HttpResponse.BodyHandlers.ofLines());
-
-        ObjectMapper mapper = new ObjectMapper();
-        String result = response.body()
-                .map(line -> {
-                    try {
-                        JsonNode node = mapper.readTree(line);
-                        return node.has("response") ? node.get("response").asText() : "";
-                    } catch (Exception e) {
-                        return "";
+        String result;
+        try (client) {
+            String safePrompt = prompt.replace("\"", "\\\"").replace("\n", "\\n");
+            String body = String.format("""
+                    {
+                        "model": "mistral",
+                        "prompt": "%s"
                     }
-                })
-                .collect(Collectors.joining());
+                    """, safePrompt);
 
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("http://localhost:11434/api/generate"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(body))
+                    .build();
+
+            HttpResponse<java.util.stream.Stream<String>> response = client.send(
+                    request, HttpResponse.BodyHandlers.ofLines());
+
+            ObjectMapper mapper = new ObjectMapper();
+            result = response.body()
+                    .map(line -> {
+                        try {
+                            JsonNode node = mapper.readTree(line);
+                            return node.has("response") ? node.get("response").asText() : "";
+                        } catch (Exception e) {
+                            return "";
+                        }
+                    })
+                    .collect(Collectors.joining());
+        }
         return result;
     }
 }
