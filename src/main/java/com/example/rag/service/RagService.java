@@ -47,24 +47,40 @@ public class RagService {
     }
 
     private void setupPythonVenv() throws Exception {
-        // Step 1: Create venv
+        File venvDir = new File("src/main/resources/venv");
+        if (venvDir.exists()) {
+            return;
+        }
         ProcessBuilder venvBuilder = new ProcessBuilder("python3", "-m", "venv", "venv");
         venvBuilder.directory(new File("src/main/resources"));
         Process venvProcess = venvBuilder.start();
-        if (venvProcess.waitFor() != 0) {
-            throw new RuntimeException("Failed to create venv");
+        int venvExit = venvProcess.waitFor();
+        if (venvExit != 0) {
+            try (BufferedReader err = new BufferedReader(new InputStreamReader(venvProcess.getErrorStream()))) {
+                StringBuilder errorMsg = new StringBuilder();
+                String line;
+                while ((line = err.readLine()) != null) errorMsg.append(line).append("\n");
+                log.error("Venv creation failed: {}", errorMsg);
+                throw new RuntimeException("Failed to create venv: " + errorMsg);
+            }
         }
 
-        // Step 2: Install libraries
-        String pipPath = "src/main/resources/venv/bin/pip";
+        String pipPath = "venv/bin/pip";
         ProcessBuilder pipBuilder = new ProcessBuilder(
                 pipPath, "install",
                 "sentence-transformers", "numpy", "faiss-cpu", "PyPDF2"
         );
         pipBuilder.directory(new File("src/main/resources"));
         Process pipProcess = pipBuilder.start();
-        if (pipProcess.waitFor() != 0) {
-            throw new RuntimeException("Failed to install Python libraries");
+        int pipExit = pipProcess.waitFor();
+        if (pipExit != 0) {
+            try (BufferedReader err = new BufferedReader(new InputStreamReader(pipProcess.getErrorStream()))) {
+                StringBuilder errorMsg = new StringBuilder();
+                String line;
+                while ((line = err.readLine()) != null) errorMsg.append(line).append("\n");
+                log.info("pip install failed: {}", errorMsg);
+                throw new RuntimeException("Failed to install Python libraries: " + errorMsg);
+            }
         }
     }
 }
