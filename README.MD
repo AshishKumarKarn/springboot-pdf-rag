@@ -17,6 +17,29 @@ No cloud API usage — everything runs locally using **Ollama Mistral**, **FAISS
 
 ---
 
+## 🧩 Tech Stack
+
+### 🐍 Python (used for document processing)
+
+- `PyPDF2` – PDF text extraction
+- `SentenceTransformers` – Text embeddings
+- `FAISS` – Vector store and retrieval
+- `NumPy` – Embedding manipulation
+- `venv` – Pre-installed virtual environment
+
+### ☕ Spring Boot (used to expose REST API)
+
+- Java 24
+- REST Controller (`/api/rag/ask`)
+- Communicates with Python script
+
+### 🧠 Local LLM
+
+- **Ollama** – Lightweight local LLM runtime
+- **Mistral** – Local model pulled via Ollama CLI
+
+---
+
 ## 📁 Project Structure
 
 ```text
@@ -30,3 +53,20 @@ project-root/
 │       └── embed_pdf_search.py          # Script to read and embed PDF
 │       └── resume.pdf                   # PDF file to be processed
 └── README.md
+
+```
+## 🚀 Getting Started
+
+### Prerequisites
+- Java 24
+- Maven
+- Python 3.8
+- Ollama installed (https://ollama.com/docs/installation)
+- Ollama Mistral model pulled (run `ollama pull mistral`)
+
+---
+#### Note: May take a few minutes to run the first time depending on the hardware.
+curl
+```
+curl --location 'http://localhost:8081/api/rag/ask?question=do%20you%20have%20the%20contact%20of%20Ashish%20Kumar%20Karn%3F'
+```
